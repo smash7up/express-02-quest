@@ -3,6 +3,7 @@ require("dotenv").config();
 const express = require("express");
 const { validateMovie } = require("./validators.js");
 const { validateUser } = require("./validators.js");
+const { hashPassword } = require("./auth.js");
 
 const app = express();
 
@@ -25,7 +26,7 @@ app.get("/api/movies/:id", movieHandlers.getMovieById);
 app.get("/api/users", userHandlers.getUsers);
 app.get("/api/users/:id", userHandlers.getUsersById);
 
-app.post("api/users", validateUser, userHandlers.postUser);
+app.post("/api/users", validateUser, hashPassword, userHandlers.postUser);
 app.post("/api/movies", validateMovie, movieHandlers.postMovie);
 
 

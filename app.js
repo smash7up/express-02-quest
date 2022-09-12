@@ -1,9 +1,6 @@
-
 require("dotenv").config();
+
 const express = require("express");
-const { validateMovie } = require("./validators.js");
-const { validateUser } = require("./validators.js");
-const { hashPassword } = require("./auth.js");
 
 const app = express();
 
@@ -17,23 +14,33 @@ const welcome = (req, res) => {
 
 app.get("/", welcome);
 
+const { validateMovie } = require("./validators.js");
 const movieHandlers = require("./movieHandlers");
+const { hashPassword, verifyPassword, verifyToken } = require("./auth");
 const userHandlers = require("./userHandlers");
+const { validateUser } = require("./validators");
 
-
+// public routes
 app.get("/api/movies", movieHandlers.getMovies);
 app.get("/api/movies/:id", movieHandlers.getMovieById);
 app.get("/api/users", userHandlers.getUsers);
-app.get("/api/users/:id", userHandlers.getUsersById);
-
+app.get("/api/users/:id", userHandlers.getUserById);
 app.post("/api/users", validateUser, hashPassword, userHandlers.postUser);
+
+app.post(
+  "/api/login",
+  userHandlers.getUserByEmailWithPasswordAndPassToNext,
+  verifyPassword
+);
+
+// protected routes
+app.use(verifyToken);
+
 app.post("/api/movies", validateMovie, movieHandlers.postMovie);
-
-
 app.put("/api/movies/:id", validateMovie, movieHandlers.updateMovie);
-app.put("/api/users/:id", validateUser, userHandlers.updateUser);
-
 app.delete("/api/movies/:id", movieHandlers.deleteMovie);
+
+app.put("/api/users/:id", validateUser, hashPassword, userHandlers.updateUser);
 app.delete("/api/users/:id", userHandlers.deleteUser);
 
 app.listen(port, (err) => {
@@ -42,4 +49,5 @@ app.listen(port, (err) => {
   } else {
     console.log(`Server is listening on ${port}`);
   }
-});
+}
+);
